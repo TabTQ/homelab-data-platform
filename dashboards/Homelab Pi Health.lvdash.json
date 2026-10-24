@@ -1,0 +1,841 @@
+{
+  "datasets": [
+    {
+      "name": "55296f7e",
+      "displayName": "host_hourly",
+      "queryLines": [
+        "SELECT hour_ts, cpu_busy_avg * 100 AS cpu_busy_pct, cpu_busy_p95 * 100 AS cpu_p95_pct,\n",
+        "       mem_used_pct, load1_avg, temp_avg_c, temp_max_c, minutes_over_70c,\n",
+        "       net_rx_bytes_s / 1024 AS net_rx_kib_s, net_tx_bytes_s / 1024 AS net_tx_kib_s\n",
+        "FROM homelab.gold.host_hourly"
+      ],
+      "catalog": "homelab",
+      "schema": "default"
+    },
+    {
+      "name": "cf833eb3",
+      "displayName": "container_daily",
+      "queryLines": [
+        "SELECT dt, container, cpu_cores_avg, cpu_cores_p95, mem_mib_avg, mem_mib_max\n",
+        "FROM homelab.gold.container_daily"
+      ],
+      "catalog": "homelab",
+      "schema": "default"
+    },
+    {
+      "name": "6a92aa26",
+      "displayName": "freshness",
+      "queryLines": [
+        "SELECT max(ts) AS latest_sample,\n",
+        "       datediff(current_timestamp(), max(ts)) AS days_old,\n",
+        "       count(DISTINCT dt) AS days_covered\n",
+        "FROM homelab.silver.prom_samples"
+      ]
+    },
+    {
+      "name": "host_latest",
+      "displayName": "host_latest",
+      "queryLines": [
+        "SELECT\n",
+        "  hour_ts,\n",
+        "  cpu_busy_avg * 100 AS cpu_busy_pct,\n",
+        "  mem_used_pct,\n",
+        "  temp_avg_c\n",
+        "FROM\n",
+        "  homelab.gold.host_hourly\n",
+        "ORDER BY\n",
+        "  hour_ts DESC\n",
+        "LIMIT 1"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "ca212424",
+      "displayName": "Dashboard",
+      "layout": [
+        {
+          "widget": {
+            "name": "cpu_busy_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "host_latest",
+                  "fields": [
+                    {
+                      "name": "avg(cpu_busy_pct)",
+                      "expression": "AVG(`cpu_busy_pct`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "CPU busy %",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(cpu_busy_pct)",
+                  "format": {
+                    "abbreviation": "none",
+                    "decimalPlaces": {
+                      "places": 1,
+                      "type": "max"
+                    },
+                    "type": "number-plain"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "mem_used_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "host_latest",
+                  "fields": [
+                    {
+                      "name": "avg(mem_used_pct)",
+                      "expression": "AVG(`mem_used_pct`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Memory used %",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(mem_used_pct)",
+                  "format": {
+                    "abbreviation": "none",
+                    "decimalPlaces": {
+                      "places": 1,
+                      "type": "max"
+                    },
+                    "type": "number-plain"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "temp_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "host_latest",
+                  "fields": [
+                    {
+                      "name": "avg(temp_avg_c)",
+                      "expression": "AVG(`temp_avg_c`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Pi temperature °C",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(temp_avg_c)",
+                  "format": {
+                    "abbreviation": "none",
+                    "decimalPlaces": {
+                      "places": 1,
+                      "type": "max"
+                    },
+                    "type": "number-plain"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "data_age_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "6a92aa26",
+                  "fields": [
+                    {
+                      "name": "max(days_old)",
+                      "expression": "MAX(`days_old`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Data age (days)"
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "max(days_old)",
+                  "format": {
+                    "abbreviation": "none",
+                    "type": "number-plain"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "date_range_filter",
+            "queries": [
+              {
+                "name": "dashboards/01f1cfabfc33163d82af3fe2e4aee7f4/datasets/01f1cfac324e13e28f7460d7df25940d_hour_ts",
+                "query": {
+                  "datasetName": "55296f7e",
+                  "fields": [
+                    {
+                      "name": "hour_ts",
+                      "expression": "`hour_ts`"
+                    },
+                    {
+                      "name": "hour_ts_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f1cfabfc33163d82af3fe2e4aee7f4/datasets/01f1cfac6e7f1d2c97984a76537531c0_dt",
+                "query": {
+                  "datasetName": "cf833eb3",
+                  "fields": [
+                    {
+                      "name": "dt",
+                      "expression": "`dt`"
+                    },
+                    {
+                      "name": "dt_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Date range"
+              },
+              "widgetType": "filter-date-range-picker",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "hour_ts",
+                    "queryName": "dashboards/01f1cfabfc33163d82af3fe2e4aee7f4/datasets/01f1cfac324e13e28f7460d7df25940d_hour_ts"
+                  },
+                  {
+                    "fieldName": "dt",
+                    "queryName": "dashboards/01f1cfabfc33163d82af3fe2e4aee7f4/datasets/01f1cfac6e7f1d2c97984a76537531c0_dt"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "container_filter",
+            "queries": [
+              {
+                "name": "dashboards/01f1cfabfc33163d82af3fe2e4aee7f4/datasets/01f1cfac6e7f1d2c97984a76537531c0_container",
+                "query": {
+                  "datasetName": "cf833eb3",
+                  "fields": [
+                    {
+                      "name": "container",
+                      "expression": "`container`"
+                    },
+                    {
+                      "name": "container_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Container"
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "container",
+                    "queryName": "dashboards/01f1cfabfc33163d82af3fe2e4aee7f4/datasets/01f1cfac6e7f1d2c97984a76537531c0_container"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 2,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "cpu_line",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "55296f7e",
+                  "fields": [
+                    {
+                      "name": "hour_ts",
+                      "expression": "`hour_ts`"
+                    },
+                    {
+                      "name": "avg(cpu_busy_pct)",
+                      "expression": "AVG(`cpu_busy_pct`)"
+                    },
+                    {
+                      "name": "avg(cpu_p95_pct)",
+                      "expression": "AVG(`cpu_p95_pct`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "CPU busy % (hourly avg vs p95)"
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "hour_ts",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fields": [
+                    {
+                      "fieldName": "avg(cpu_busy_pct)",
+                      "displayName": "CPU busy % (hourly avg)"
+                    },
+                    {
+                      "fieldName": "avg(cpu_p95_pct)",
+                      "displayName": "CPU busy % (p95)"
+                    }
+                  ],
+                  "scale": {
+                    "domain": {
+                      "max": 100,
+                      "min": 0,
+                      "type": "custom"
+                    },
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "temp_line",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "55296f7e",
+                  "fields": [
+                    {
+                      "name": "hour_ts",
+                      "expression": "`hour_ts`"
+                    },
+                    {
+                      "name": "avg(temp_avg_c)",
+                      "expression": "AVG(`temp_avg_c`)"
+                    },
+                    {
+                      "name": "avg(temp_max_c)",
+                      "expression": "AVG(`temp_max_c`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Pi temperature °C (hourly avg vs max)"
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "hour_ts",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fields": [
+                    {
+                      "fieldName": "avg(temp_avg_c)",
+                      "displayName": "Temp avg (°C)"
+                    },
+                    {
+                      "fieldName": "avg(temp_max_c)",
+                      "displayName": "Temp max (°C)"
+                    }
+                  ],
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 4,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "mem_bar",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cf833eb3",
+                  "fields": [
+                    {
+                      "name": "container",
+                      "expression": "`container`"
+                    },
+                    {
+                      "name": "avg(cpu_cores_avg)",
+                      "expression": "AVG(`cpu_cores_avg`)"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "AVG(`cpu_cores_avg`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Average CPU per container (cores)"
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "container",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "measure-reversed",
+                      "measure": {
+                        "fieldName": "avg(cpu_cores_avg)"
+                      }
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "avg(cpu_cores_avg)",
+                  "axis": {
+                    "title": "Avg CPU cores"
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "cpu_stack_bar",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cf833eb3",
+                  "fields": [
+                    {
+                      "name": "container",
+                      "expression": "`container`"
+                    },
+                    {
+                      "name": "dt",
+                      "expression": "`dt`"
+                    },
+                    {
+                      "name": "avg(cpu_cores_avg)",
+                      "expression": "AVG(`cpu_cores_avg`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Container CPU per day (cores)"
+              },
+              "version": 3,
+              "mark": {
+                "layout": "stack"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "dt",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg(cpu_cores_avg)",
+                  "axis": {
+                    "title": "CPU cores"
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "container",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 8,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "league_table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cf833eb3",
+                  "fields": [
+                    {
+                      "name": "container",
+                      "expression": "`container`"
+                    },
+                    {
+                      "name": "avg(cpu_cores_avg)",
+                      "expression": "AVG(`cpu_cores_avg`)"
+                    },
+                    {
+                      "name": "max(cpu_cores_p95)",
+                      "expression": "MAX(`cpu_cores_p95`)"
+                    },
+                    {
+                      "name": "count(dt)",
+                      "expression": "COUNT(`dt`)"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "AVG(`cpu_cores_avg`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Container league table"
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "container"
+                  },
+                  {
+                    "fieldName": "avg(cpu_cores_avg)",
+                    "format": {
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "places": 4,
+                        "type": "max"
+                      },
+                      "type": "number-plain"
+                    },
+                    "displayName": "Avg CPU cores"
+                  },
+                  {
+                    "fieldName": "max(cpu_cores_p95)",
+                    "format": {
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "places": 4,
+                        "type": "max"
+                      },
+                      "type": "number-plain"
+                    },
+                    "displayName": "Max CPU p95 cores"
+                  },
+                  {
+                    "fieldName": "count(dt)",
+                    "format": {
+                      "abbreviation": "none",
+                      "type": "number-plain"
+                    },
+                    "displayName": "Days"
+                  }
+                ],
+                "rowOrder": [
+                  {
+                    "by": "column-reversed",
+                    "field": {
+                      "index": 1
+                    }
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "net_line",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "55296f7e",
+                  "fields": [
+                    {
+                      "name": "hour_ts",
+                      "expression": "`hour_ts`"
+                    },
+                    {
+                      "name": "avg(net_rx_kib_s)",
+                      "expression": "AVG(`net_rx_kib_s`)"
+                    },
+                    {
+                      "name": "avg(net_tx_kib_s)",
+                      "expression": "AVG(`net_tx_kib_s`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Network throughput (KiB/s)"
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "hour_ts",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fields": [
+                    {
+                      "fieldName": "avg(net_rx_kib_s)",
+                      "displayName": "Rx (KiB/s)"
+                    },
+                    {
+                      "fieldName": "avg(net_tx_kib_s)",
+                      "displayName": "Tx (KiB/s)"
+                    }
+                  ],
+                  "scale": {
+                    "fn": {
+                      "type": "symlog"
+                    },
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 17,
+            "width": 12,
+            "height": 4
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
