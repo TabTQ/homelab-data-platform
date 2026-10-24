@@ -9,19 +9,19 @@ resources:
       tasks:
         - task_key: LOAD-BRONZE
           notebook_task:
-            notebook_path: /Workspace/Users/tabishtariqaz@gmail.com/homelab-data-platform/dbr_notebooks/01_bronze_prom
+            notebook_path: /Workspace/Users/<you>/homelab-data-platform/dbr_notebooks/01_bronze_prom
             source: WORKSPACE
         - task_key: LOAD-SILVER
           depends_on:
             - task_key: LOAD-BRONZE
           notebook_task:
-            notebook_path: /Workspace/Users/tabishtariqaz@gmail.com/homelab-data-platform/dbr_notebooks/02_silver_prom
+            notebook_path: /Workspace/Users/<you>/homelab-data-platform/dbr_notebooks/02_silver_prom
             source: WORKSPACE
         - task_key: LOAD-GOLD
           depends_on:
             - task_key: LOAD-SILVER
           notebook_task:
-            notebook_path: /Workspace/Users/tabishtariqaz@gmail.com/homelab-data-platform/dbr_notebooks/04_gold_refresh
+            notebook_path: /Workspace/Users/<you>/homelab-data-platform/dbr_notebooks/04_gold_refresh
             source: WORKSPACE
       queue:
         enabled: true

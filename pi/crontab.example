@@ -1,0 +1,1 @@
+0 */4 * * * cd $HOME/hl-orch && set -a && . ./.env && set +a && /usr/bin/python3 orchestrate.py >> $HOME/hl-orch/orch.log 2>&1

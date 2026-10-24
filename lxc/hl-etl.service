@@ -1,0 +1,15 @@
+[Unit]
+Description=Extract Prometheus data and upload to Databricks
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=1800
+StartLimitBurst=5
+
+[Service]
+Type=oneshot
+ExecStart=/opt/hl-etl/run.sh
+Restart=on-failure
+RestartSec=120
+
+[Install]
+WantedBy=multi-user.target
